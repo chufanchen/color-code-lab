@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101615">
+  <title>密码实验室 · 7 步解码</title>
+  <meta name="description" content="从 7 种颜色中选出 4 种不同颜色，在 7 次机会内破解密码。支持初级与高级模式。">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23101615'/%3E%3Crect x='6' y='6' width='8' height='8' rx='2' fill='%23c9f76b'/%3E%3Crect x='18' y='6' width='8' height='8' rx='2' fill='%23ff6d68'/%3E%3Crect x='6' y='18' width='8' height='8' rx='2' fill='%235cb9ff'/%3E%3Crect x='18' y='18' width='8' height='8' rx='2' fill='%23b898ff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="tree.css">
+  <script src="decision.js" defer></script>
+  <script src="tree.js" defer></script>
+  <script src="game.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><div><h1>密码实验室</h1><span class="wordmark">COLOR CODE / 07</span></div></div>
+      <button id="new-game" class="quiet-button"><span aria-hidden="true">↻</span> 新的一局</button>
+    </header>
+    <div class="intro"><div><span class="eyebrow">逻辑解码游戏</span><h2>七次机会。一个答案。</h2></div><p>7 种颜色 · 4 格密码 · 颜色不重复</p></div>
+    <div class="workspace">
+      <section class="board-card" aria-label="解码棋盘">
+        <div class="board-title"><span>解码记录</span><span id="round-counter" class="mono">01 <span>/ 07</span></span></div>
+        <div class="secret-wrap"><span id="secret-label">隐藏密码</span><div id="secret" class="secret" aria-label="密码尚未揭晓"></div><span class="secret-caption" id="secret-caption">猜对后揭晓</span></div>
+        <div class="column-head"><span>轮次</span><span>你的猜测</span><span id="feedback-heading">逐格提示</span></div>
+        <div id="rows" class="rows"></div>
+        <div class="board-footer"><span id="board-status">轮到你了，组合第一个猜测。</span><a href="#decision-tree" class="tree-shortcut">查看决策树</a></div>
+      </section>
+      <aside class="sidebar">
+        <section class="entry-card">
+          <div class="mode-label"><span>游戏模式</span><span id="mode-caption">适合入门</span></div>
+          <div class="mode-switch" role="group" aria-label="游戏模式"><button id="beginner" aria-pressed="true">初级 <span>逐格提示</span></button><button id="advanced" aria-pressed="false">高级 <span>数量提示</span></button></div>
+          <div class="entry-heading"><h3 id="entry-title">第 1 次猜测</h3><button id="clear" class="text-button">清空</button></div>
+          <div id="draft" class="draft" role="group" aria-label="编辑四格猜测"></div>
+          <p class="helper" id="selection-helper">点击色块填入，点击格子可修改。</p>
+          <div id="palette" class="palette" role="group" aria-label="可选颜色"></div>
+          <button id="submit" class="submit" disabled>提交猜测 <span id="submit-count">0 / 4</span></button>
+          <div class="message" id="message" aria-live="polite" role="status">选满 4 种不同颜色，即可验证。</div>
+          <div class="keyboard-tip">键盘：1–7 选色 · ← → 选格 · Enter 提交</div>
+        </section>
+        <details class="rules" open><summary>怎么看提示？<span aria-hidden="true">+</span></summary><div class="rules-body"><div class="legend"><span class="light correct">✓</span><div><strong>颜色、位置都正确</strong><p>绿灯代表完全命中。</p></div></div><div class="legend"><span class="light misplaced">↔</span><div><strong>颜色正确，位置不对</strong><p>白灯代表需要换一个位置。</p></div></div><div class="legend"><span class="light absent">×</span><div><strong>密码中没有这个颜色</strong><p>灰灯代表可以排除。</p></div></div><p id="mode-rule" class="mode-rule">初级模式：每盏灯对应左侧同一位置的颜色。</p><p class="strategy">小技巧：结合所有历史提示，排除不可能的组合。</p></div></details>
+      </aside>
+      <section id="decision-tree" class="tree-card" aria-labelledby="tree-title">
+        <div class="tree-header"><div><span class="eyebrow">实时推理</span><h3 id="tree-title">决策搜索树</h3></div><div class="candidate-stat"><strong id="candidate-count">840</strong><span>个候选</span></div></div>
+        <p id="tree-summary" class="tree-summary" role="status" aria-live="polite">每次提交后，沿实际反馈缩小范围。</p>
+        <div class="tree-key"><span><i class="actual-key"></i>实际路径</span><span><i class="possible-key"></i>未走分支</span><span><i class="preview-key"></i>模拟试探</span></div>
+        <div id="tree-canvas" class="tree-canvas" aria-label="猜测与反馈分支"></div>
+        <div class="tree-controls"><button id="preview-draft" class="quiet-button" disabled>预览我的猜测</button><button id="preview-recommendation" class="text-button">查看建议</button></div>
+        <div id="tree-inspector" class="tree-inspector" hidden></div>
+        <p class="tree-note">仅依据已公布的提示计算。点开分支可以继续探索，不消耗猜测次数。</p>
+      </section>
+    </div>
+    <footer class="page-footer"><span>让每一次猜测，都更接近答案。</span><span>MASTERMIND</span></footer>
+  </main>
+  <dialog id="restart-dialog"><h2>开始新的一局？</h2><p>当前的猜测记录将清空，并生成新密码。</p><div class="dialog-actions"><button id="cancel-restart" class="quiet-button">继续这局</button><button id="confirm-restart" class="submit">开始新局</button></div></dialog>
+</body>
+</html>
